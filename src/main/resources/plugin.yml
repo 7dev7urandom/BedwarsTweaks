@@ -1,0 +1,14 @@
+main: com.micahhenney.bedwarstweaks.BedwarsTweaks
+name: BedwarsTweaks
+author: Micah Henney
+version: 1.0-SNAPSHOT
+api-version: 1.19
+
+depend:
+    - BedWars
+    - SBA
+
+commands:
+    hub:
+    hypixelImport:
+    printnbt:
