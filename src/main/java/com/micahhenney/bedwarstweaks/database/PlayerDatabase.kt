@@ -1,6 +1,7 @@
 package com.micahhenney.bedwarstweaks.database
 
 import com.micahhenney.bedwarstweaks.BedwarsTweaks
+import net.hypixel.api.reply.PlayerReply
 import org.bukkit.entity.Player
 import java.io.File
 import java.io.IOException
@@ -32,7 +33,7 @@ class PlayerDatabase {
                 }
                 Class.forName("org.sqlite.JDBC")
                 connection = DriverManager.getConnection("jdbc:sqlite:$dataFolder")
-                val ps = connection!!.prepareStatement("CREATE TABLE IF NOT EXISTS players (uuid char(36) NOT NULL, quickBuy varchar(672) NOT NULL, PRIMARY KEY (uuid))")
+                val ps = connection!!.prepareStatement("CREATE TABLE IF NOT EXISTS players (uuid char(36) NOT NULL, quickBuy varchar(672) NOT NULL, hotbarManager varchar(9) NOT NULL, PRIMARY KEY (uuid))")
                 ps.executeUpdate()
                 ps.close()
                 return
@@ -56,8 +57,9 @@ class PlayerDatabase {
                 if(rs.next()) {
                     val uuid = UUID.fromString(rs.getString("uuid"))
                     val quickBuy = rs.getString("quickBuy")
+                    val hotbarManager = rs.getString("hotbarManager")
                     rs.close()
-                    return PlayerInfo(uuid, quickBuy)
+                    return PlayerInfo(uuid, quickBuy, hotbarManager)
                 } else {
                     return null
                 }
@@ -66,7 +68,7 @@ class PlayerDatabase {
             } finally {
                 try {
                     ps?.close()
-                } catch(e: java.lang.Exception) {}
+                } catch(_: java.lang.Exception) {}
             }
             return null
         }
@@ -75,23 +77,53 @@ class PlayerDatabase {
             var ps: PreparedStatement? = null
 
             try {
-                ps = connection!!.prepareStatement("INSERT OR REPLACE INTO players (uuid, quickBuy) VALUES (?, ?)")
+                ps = connection!!.prepareStatement("INSERT OR REPLACE INTO players (uuid, quickBuy, hotbarManager) VALUES (?, ?, ?)")
                 ps.setString(1, playerInfo.uuid.toString())
                 ps.setString(2, playerInfo.quickBuy)
+                ps.setString(3, playerInfo.hotbarManager)
                 ps.executeUpdate()
             } catch (e: SQLException) {
                 e.printStackTrace()
             } finally {
                 try {
                     ps?.close()
-                } catch (e: java.lang.Exception) {}
+                } catch (_: java.lang.Exception) {}
             }
+        }
+
+        fun importHypixel(player: Player) {
+            try {
+                BedwarsTweaks.instance?.hypixelAPI?.getPlayerByUuid(player.uniqueId)?.thenAccept { value: PlayerReply ->
+                    val bedwarsStats = value.player.getObjectProperty("stats").getAsJsonObject("Bedwars")
+                    val favSlots = bedwarsStats.getAsJsonPrimitive("favourites_2").asString
+                    val hotbar = bedwarsStats.getAsJsonPrimitive("favorite_slots")?.asString?.split(',')?.map {
+                        when (it) {
+                            "Blocks" -> 'B'
+                            "Melee" -> 'M'
+                            "Tools" -> 'T'
+                            "Utility" -> 'U'
+                            "Potions" -> 'P'
+                            "null" -> 'x'
+                            else -> 'x'
+                        }
+                    }?.joinToString("")?: "xxxxxxxxx"
+                    if(hotbar.length != 9) throw Error("Invalid Hotbar from hypixel: $hotbar")
+                    player.sendMessage("Found your Quick-Buy and HotbarManager information")
+                    val pData = getPlayerInfo(player)?: PlayerInfo(player.uniqueId, favSlots, hotbar)
+                    pData.quickBuy = favSlots
+                    pData.hotbarManager = hotbar
+                    savePlayerInfo(pData)
+                }
+            } catch (e: java.lang.Exception) {
+                player.sendMessage("Error collecting your hypixel information")
+            }
+
         }
 
         fun Disconnect() {
             try {
                 connection?.close()
-            } catch (e: SQLException) {}
+            } catch (_: SQLException) {}
         }
     }
 }

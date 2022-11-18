@@ -4,5 +4,6 @@ import java.util.UUID
 
 data class PlayerInfo(
     val uuid: UUID,
-    val quickBuy: String
+    var quickBuy: String?,
+    var hotbarManager: String?
 )

@@ -10,7 +10,7 @@ class ToolsMenu(player: Player, game: Game) : ShopMenu(player, game, items) {
         private val items = ArrayList<ShopItem>()
 
         init {
-            items.add(ShopItem("wooden_pickaxe", { player, game ->
+            items.add(addItem("wooden_pickaxe", { player, game ->
                 when {
                     player.inventory.contains(Material.WOODEN_PICKAXE) -> ItemStack(Material.IRON_PICKAXE)
                     player.inventory.contains(Material.IRON_PICKAXE) -> ItemStack(Material.GOLDEN_PICKAXE)
@@ -36,7 +36,7 @@ class ToolsMenu(player: Player, game: Game) : ShopMenu(player, game, items) {
                     }
                 }
             }
-            items.add(ShopItem("wooden_axe", { player, game ->
+            items.add(addItem("wooden_axe", { player, game ->
                 when {
                     player.inventory.contains(Material.WOODEN_AXE) -> ItemStack(Material.STONE_AXE)
                     player.inventory.contains(Material.STONE_AXE) -> ItemStack(Material.IRON_AXE)
@@ -63,7 +63,14 @@ class ToolsMenu(player: Player, game: Game) : ShopMenu(player, game, items) {
                     }
                 }
             }
-            items.add(ShopItem("shears", { _, _ -> ItemStack(Material.SHEARS) }, Price(Material.IRON_INGOT, 20)))
+            items.add(addItem("shears", { _, _ -> ItemStack(Material.SHEARS) }, Price(Material.IRON_INGOT, 20)))
+
+        }
+        fun hasItem(item: ItemStack, p: Player, g: Game): Boolean {
+            return item.type.name.contains("axe", ignoreCase = true) || item.type == Material.SHEARS
+        }
+        private fun addItem(name: String, getItemStack: (Player, Game) -> ItemStack, price: Price?): ShopItem {
+            return ShopItem(name, getItemStack, price, 'T')
         }
     }
 

@@ -15,7 +15,7 @@ class PotionsMenu(player: Player, game: Game) : ShopMenu(player, game, items) {
         private val items = ArrayList<ShopItem>()
 
         init {
-            items.add(ShopItem("jump_v_potion_(45_seconds)", { _, _ ->
+            items.add(addItem("jump_v_potion_(45_seconds)", { _, _ ->
                 val item = ItemStack(Material.POTION)
                 val meta = (item.itemMeta as PotionMeta)
                 meta.basePotionData = PotionData(PotionType.JUMP)
@@ -25,7 +25,7 @@ class PotionsMenu(player: Player, game: Game) : ShopMenu(player, game, items) {
                 item.itemMeta = meta
                 item
             }, Price(Material.EMERALD, 1)))
-            items.add(ShopItem("speed_ii_potion_(45_seconds)", { _, _ ->
+            items.add(addItem("speed_ii_potion_(45_seconds)", { _, _ ->
                 val item = ItemStack(Material.POTION)
                 val meta = (item.itemMeta as PotionMeta)
                 meta.basePotionData = PotionData(PotionType.SPEED)
@@ -35,7 +35,7 @@ class PotionsMenu(player: Player, game: Game) : ShopMenu(player, game, items) {
                 item.itemMeta = meta
                 item
             }, Price(Material.EMERALD, 1)))
-            items.add(ShopItem("invisibility_potion_(30_seconds)", { _, _ ->
+            items.add(addItem("invisibility_potion_(30_seconds)", { _, _ ->
                 val item = ItemStack(Material.POTION)
                 val meta = (item.itemMeta as PotionMeta)
                 meta.basePotionData = PotionData(PotionType.INVISIBILITY)
@@ -45,6 +45,12 @@ class PotionsMenu(player: Player, game: Game) : ShopMenu(player, game, items) {
                 item.itemMeta = meta
                 item
             }, Price(Material.EMERALD, 2)))
+        }
+        fun hasItem(item: ItemStack, p: Player, g: Game): Boolean {
+            return item.type == Material.POTION
+        }
+        private fun addItem(name: String, getItemStack: (Player, Game) -> ItemStack, price: Price): ShopItem {
+            return ShopItem(name, getItemStack, price, 'P')
         }
     }
 

@@ -12,3 +12,4 @@ commands:
     hub:
     hypixelImport:
     printnbt:
+    test:
